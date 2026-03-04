@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Config, ServiceItem } from "@/lib/types";
+import { apiPath, getImageUrl } from "@/lib/api";
 
 export default function ServicePage() {
   const [config, setConfig] = useState<Config | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/config")
+    fetch(apiPath("/api/config"))
       .then((r) => r.json())
       .then((data) => {
         setConfig(data);
@@ -200,7 +201,7 @@ function ServiceCard({
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow">
       <div className="aspect-video bg-gray-100 relative">
         <img
-          src={service.image}
+          src={getImageUrl(service.image)}
           alt={service.name}
           className="w-full h-full object-cover"
         />

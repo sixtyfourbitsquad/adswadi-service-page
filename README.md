@@ -59,6 +59,11 @@ npm run build
 npm start
 ```
 
-## Deployment (Vercel & Render)
+## Deployment (free: Vercel + Render)
 
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for step-by-step guides to host the app on **Vercel** (serverless, no persistent storage) or **Render** (with persistent disk for admin config, password, and uploads).
+The app is set up for **free** hosting: **frontend on Vercel** and **backend on Render**.
+
+- **Backend** (in `backend/`): Express server with config, admin login, change password, uploads, and UPI QR. Deploy to Render with Root Directory = `backend`.
+- **Frontend**: Next.js app (this repo root). Deploy to Vercel and set `NEXT_PUBLIC_API_URL` to your Render backend URL.
+
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for the full **Free hosting: Frontend (Vercel) + Backend (Render)** guide and other options.

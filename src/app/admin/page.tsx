@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Config, ServiceItem, SubCategory } from "@/lib/types";
+import { apiPath } from "@/lib/api";
 
 const TOKEN_KEY = "adswadi_admin_token";
 
@@ -27,7 +28,7 @@ export default function AdminPage() {
     const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     setToken(t);
     if (!t) return;
-    fetch("/api/admin/config", {
+    fetch(apiPath("/api/admin/config"), {
       headers: { Authorization: `Bearer ${t}` },
     })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
@@ -48,7 +49,7 @@ export default function AdminPage() {
 
   const saveToServer = async (payload: Partial<Config>): Promise<Config | null> => {
     if (!token) return null;
-    const res = await fetch("/api/admin/config", {
+    const res = await fetch(apiPath("/api/admin/config"), {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -418,7 +419,7 @@ function ChangePasswordForm({
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/change-password", {
+      const res = await fetch(apiPath("/api/admin/change-password"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -504,7 +505,7 @@ function LoginForm({ onSuccess }: { onSuccess: (token: string) => void }) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    fetch("/api/admin/login", {
+    fetch(apiPath("/api/admin/login"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
@@ -560,7 +561,7 @@ function UploadPoster({
     form.append("file", file);
     form.append("name", serviceName);
     try {
-      const res = await fetch("/api/admin/upload", {
+      const res = await fetch(apiPath("/api/admin/upload"), {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: form,

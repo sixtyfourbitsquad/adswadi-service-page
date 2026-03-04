@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Config } from "@/lib/types";
+import { apiPath } from "@/lib/api";
 
 function PaymentContent() {
   const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ function PaymentContent() {
   };
 
   useEffect(() => {
-    fetch("/api/config")
+    fetch(apiPath("/api/config"))
       .then((r) => r.json())
       .then((data) => {
         setConfig(data);
@@ -54,7 +55,7 @@ function PaymentContent() {
 
   // QR is always generated from UPI ID and amount (no upload needed)
   const qrSrc = payment.upiId
-    ? `/api/upi-qr?pa=${encodeURIComponent(payment.upiId)}&pn=${encodeURIComponent(payment.upiName || "Pay")}${amountParam ? `&am=${encodeURIComponent(amountParam)}` : ""}`
+    ? apiPath(`/api/upi-qr?pa=${encodeURIComponent(payment.upiId)}&pn=${encodeURIComponent(payment.upiName || "Pay")}${amountParam ? `&am=${encodeURIComponent(amountParam)}` : ""}`)
     : null;
 
   return (

@@ -1,6 +1,54 @@
 # Deployment Guide: Vercel & Render
 
-This app is a **single Next.js project**: the frontend (pages) and backend (API routes under `/api/`) are in one codebase. You deploy **one app** to Vercel or Render; that same app serves both the UI and the APIs.
+You can run this app in two ways:
+
+1. **Free split (recommended)** – **Frontend on Vercel** (free) + **Backend on Render** (free). The repo is set up for this: `backend/` is the API server; the root Next.js app is the frontend and calls the backend via `NEXT_PUBLIC_API_URL`.
+2. **Single app** – Deploy the whole Next.js app (with API routes) to one host. The codebase no longer includes API routes in the frontend; use the `backend/` on Render and the root app can also be deployed to Render as a single app if you add the API routes back. For **free** hosting without paying, use the **split** setup below.
+
+---
+
+## Free hosting: Frontend (Vercel) + Backend (Render)
+
+This keeps you on **free tiers** on both platforms: the Next.js frontend runs on Vercel, and the Express backend (config, admin, uploads, UPI QR) runs on Render with a persistent disk.
+
+### 1. Deploy the backend on Render
+
+1. Push the repo to GitHub (it already has a `backend/` folder with the API server).
+2. On [Render](https://render.com): **New +** → **Web Service**.
+3. Connect the repo. Set **Root Directory** to **`backend`** (so Render only builds/runs the backend).
+4. **Build Command**: `npm install`  
+   **Start Command**: `npm start`
+5. **Environment** (in Render dashboard):
+   - `ADMIN_PASSWORD` = your admin password
+   - `BACKEND_PUBLIC_URL` = your Render service URL (e.g. `https://adswadi-api.onrender.com`) — set this **after** the first deploy so you can copy the URL.
+6. **Disks** (optional but recommended so config and uploads persist):
+   - Add a disk with **Mount Path** `data` → maps to `backend/data` (config and admin password).
+   - Add a disk with **Mount Path** `public/uploaded` → for uploaded images.  
+   (On Render, when Root Directory is `backend`, the app’s `process.cwd()` is the `backend` folder, so `data` and `public/uploaded` are under `backend/`.)
+7. Deploy. Copy the service URL (e.g. `https://adswadi-api.onrender.com`) and, if you didn’t set it yet, add **Environment** → `BACKEND_PUBLIC_URL` = that URL, then redeploy.
+
+The backend serves: `/api/config`, `/api/admin/config`, `/api/admin/login`, `/api/admin/change-password`, `/api/admin/upload`, `/api/upi-qr`, and static files at `/uploaded/*`.
+
+### 2. Deploy the frontend on Vercel
+
+1. On [Vercel](https://vercel.com): **Add New** → **Project** → import the **same** GitHub repo.
+2. **Root Directory**: leave as **.** (repo root) or set to the root so Vercel builds the **Next.js app**, not the backend.
+3. **Environment Variables**:
+   - `NEXT_PUBLIC_API_URL` = your Render backend URL, e.g. `https://adswadi-api.onrender.com` (no trailing slash).
+4. **Build Command**: `npm run build` (default). Do **not** set Root to `backend`.
+5. Deploy. Your site will be at `https://your-project.vercel.app`. The frontend will call the backend for all data and images from `/uploaded/`.
+
+### 3. Summary
+
+| What | Where |
+|------|--------|
+| Frontend (pages, UI) | Vercel (free) |
+| Backend (APIs, config, uploads, UPI QR) | Render (free), Root Directory = `backend` |
+| `NEXT_PUBLIC_API_URL` (Vercel) | Your Render backend URL |
+| `BACKEND_PUBLIC_URL` (Render) | Same URL (for upload URLs and CORS) |
+| `ADMIN_PASSWORD` | Set only on Render (backend) |
+
+Local development (split): run `node backend/server.js` from the `backend/` folder (or `cd backend && npm start`) on port 3001, and run the Next.js app with `NEXT_PUBLIC_API_URL=http://localhost:3001` in `.env.local`.
 
 ---
 

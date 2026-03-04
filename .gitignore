@@ -15,6 +15,9 @@ out
 # data/config.json
 # data/admin.json
 
+# Backend: do not commit saved admin password
+backend/data/admin.json
+
 # Uploads (generated at runtime)
 public/uploaded
 
