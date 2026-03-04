@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/.pnpm
+node_modules
+
+# Next.js
+.next
+out
+
+# Env (contains ADMIN_PASSWORD)
+.env
+.env.local
+.env.*.local
+
+# Optional: keep config in repo for deploy; uncomment to ignore local edits
+# data/config.json
+# data/admin.json
+
+# Uploads (generated at runtime)
+public/uploaded
+
+# Debug / OS
+npm-debug.log*
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
