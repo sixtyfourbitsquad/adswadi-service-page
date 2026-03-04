@@ -66,4 +66,5 @@ The app is set up for **free** hosting: **frontend on Vercel** and **backend on 
 - **Backend** (in `backend/`): Express server with config, admin login, change password, uploads, and UPI QR. Deploy to Render with Root Directory = `backend`.
 - **Frontend**: Next.js app (this repo root). Deploy to Vercel and set `NEXT_PUBLIC_API_URL` to your Render backend URL.
 
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for the full **Free hosting: Frontend (Vercel) + Backend (Render)** guide and other options.
+- **[DEPLOYMENT-GUIDE.md](./DEPLOYMENT-GUIDE.md)** – Short step-by-step to deploy for free (Vercel + Render).  
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** – Full reference (disks, single-app, troubleshooting).
