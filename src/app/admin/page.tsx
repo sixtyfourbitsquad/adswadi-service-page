@@ -3,14 +3,16 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Config, ServiceItem, SubCategory } from "@/lib/types";
-import { apiPath } from "@/lib/api";
+import { apiPath, fetchWithTimeout } from "@/lib/api";
 
 const TOKEN_KEY = "adswadi_admin_token";
+const CONFIG_FETCH_TIMEOUT_MS = 25000;
 
 export default function AdminPage() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [config, setConfig] = useState<Config | null>(null);
+  const [backendError, setBackendError] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Draft state – only sent to server when user clicks Save
@@ -27,11 +29,15 @@ export default function AdminPage() {
   useEffect(() => {
     const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     setToken(t);
+    setBackendError(null);
     if (!t) return;
-    fetch(apiPath("/api/admin/config"), {
-      headers: { Authorization: `Bearer ${t}` },
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    const url = apiPath("/api/admin/config");
+    fetchWithTimeout(
+      url,
+      { headers: { Authorization: `Bearer ${t}` } },
+      CONFIG_FETCH_TIMEOUT_MS
+    )
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Unauthorized"))))
       .then((data: Config) => {
         setConfig(data);
         setTitleDraft(data.title);
@@ -39,7 +45,16 @@ export default function AdminPage() {
         setPaymentDraft(data.payment);
         setServicesDraft(JSON.parse(JSON.stringify(data.services)));
       })
-      .catch(() => setToken(null));
+      .catch((err) => {
+        setToken(null);
+        localStorage.removeItem(TOKEN_KEY);
+        const isTimeout = err?.name === "AbortError";
+        setBackendError(
+          isTimeout
+            ? "Backend took too long (Render may be waking up — wait 1 min and try again)."
+            : "Could not reach backend. Set NEXT_PUBLIC_API_URL on Vercel to your Render URL (e.g. https://your-app.onrender.com)."
+        );
+      });
   }, []);
 
   const showMessage = (type: "success" | "error", text: string) => {
@@ -124,9 +139,25 @@ export default function AdminPage() {
 
   if (token === null && !config) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4 py-8">
+        {backendError && (
+          <div className="mb-6 max-w-md rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {backendError}
+            <p className="mt-2 text-amber-700">
+              After fixing, click below to try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => setBackendError(null)}
+              className="mt-3 text-sm font-medium text-amber-800 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         <LoginForm
           onSuccess={(t) => {
+            setBackendError(null);
             localStorage.setItem(TOKEN_KEY, t);
             setToken(t);
             router.refresh();
@@ -138,8 +169,11 @@ export default function AdminPage() {
 
   if (!config) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
         <div className="text-gray-600">Loading...</div>
+        <p className="mt-2 text-sm text-gray-500">
+          If this takes more than 30 seconds, the backend may be waking up (Render free tier). Wait and retry.
+        </p>
       </div>
     );
   }
@@ -501,21 +535,40 @@ function ChangePasswordForm({
 function LoginForm({ onSuccess }: { onSuccess: (token: string) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    fetch(apiPath("/api/admin/login"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    })
+    setLoading(true);
+    const url = apiPath("/api/admin/login");
+    if (!url.startsWith("http") && !url.startsWith("//")) {
+      setError("NEXT_PUBLIC_API_URL is not set on Vercel. Set it to your Render backend URL (e.g. https://your-app.onrender.com).");
+      setLoading(false);
+      return;
+    }
+    fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      },
+      20000
+    )
       .then((r) => r.json())
       .then((data) => {
         if (data.token) onSuccess(data.token);
-        else setError(data.error || "Invalid");
+        else setError(data.error || "Invalid password");
       })
-      .catch(() => setError("Request failed"));
+      .catch((err) => {
+        setError(
+          err?.name === "AbortError"
+            ? "Backend took too long. Render may be waking up — try again in 30 seconds."
+            : "Cannot reach backend. Check NEXT_PUBLIC_API_URL on Vercel (your Render URL)."
+        );
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -533,9 +586,10 @@ function LoginForm({ onSuccess }: { onSuccess: (token: string) => void }) {
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
       <button
         type="submit"
-        className="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition"
+        disabled={loading}
+        className="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-60"
       >
-        Log in
+        {loading ? "Logging in…" : "Log in"}
       </button>
     </form>
   );

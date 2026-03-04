@@ -25,3 +25,20 @@ export function getImageUrl(image: string | undefined): string {
   if (image.startsWith("/uploaded/")) return apiPath(image);
   return image;
 }
+
+const DEFAULT_TIMEOUT_MS = 25000;
+
+/**
+ * fetch with timeout (for backend that may be cold-starting on Render).
+ */
+export function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+    clearTimeout(id)
+  );
+}

@@ -58,6 +58,21 @@ function PaymentContent() {
     ? apiPath(`/api/upi-qr?pa=${encodeURIComponent(payment.upiId)}&pn=${encodeURIComponent(payment.upiName || "Pay")}${amountParam ? `&am=${encodeURIComponent(amountParam)}` : ""}`)
     : null;
 
+  // UPI deep link: opens UPI app with payee and amount (when set)
+  const upiPayUrl = payment.upiId
+    ? (() => {
+        const params = new URLSearchParams();
+        params.set("pa", payment.upiId);
+        params.set("pn", (payment.upiName || "Pay").slice(0, 50));
+        params.set("cu", "INR");
+        if (amountParam && amountParam.trim() !== "") {
+          const am = parseFloat(String(amountParam).replace(/,/g, ""));
+          if (!Number.isNaN(am) && am > 0) params.set("am", am.toFixed(2));
+        }
+        return `upi://pay?${params.toString()}`;
+      })()
+    : null;
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] via-[#EDE9FE] to-[#DBEAFE] py-12 px-4">
@@ -106,6 +121,15 @@ function PaymentContent() {
             <div className="mb-6 flex justify-center items-center w-56 h-56 mx-auto border-2 border-dashed border-gray-200 rounded-xl text-gray-500 font-semibold text-sm text-center px-4">
               Set UPI ID in admin to generate QR
             </div>
+          )}
+
+          {upiPayUrl && (
+            <a
+              href={upiPayUrl}
+              className="mb-6 flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-purple-600 text-white font-bold text-lg shadow-lg hover:bg-purple-700 transition"
+            >
+              PAY NOW
+            </a>
           )}
 
           {(payment.upiId || payment.upiName) && (

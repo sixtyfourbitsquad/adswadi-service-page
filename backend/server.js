@@ -11,19 +11,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploaded");
 
-// CORS: allow frontend on Vercel (any .vercel.app) and localhost for dev
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowed =
-      !origin ||
-      /\.vercel\.app$/.test(origin) ||
-      /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
-      (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL);
-    callback(null, allowed);
-  },
-  credentials: true,
-};
-app.use(cors(corsOptions));
+// CORS: allow all origins (Vercel, custom domains, localhost) so admin panel works from any frontend URL
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 function auth(req) {
