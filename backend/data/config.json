@@ -17,16 +17,20 @@
       "name": "Google Ads",
       "slug": "google-ads",
       "image": "/Images/google.png",
-      "price": "",
-      "amount": ""
+      "subCategories": [
+        { "name": "Weekly", "price": "", "amount": "" },
+        { "name": "Monthly", "price": "", "amount": "" }
+      ]
     },
     {
       "id": "snapchat-ads",
       "name": "Snapchat Ads",
       "slug": "snapchat-ads",
       "image": "/Images/snapchat.png",
-      "price": "",
-      "amount": ""
+      "subCategories": [
+        { "name": "Weekly", "price": "", "amount": "" },
+        { "name": "Monthly", "price": "", "amount": "" }
+      ]
     },
     {
       "id": "website-development",
