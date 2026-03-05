@@ -27,16 +27,17 @@ export default function ServicePage() {
     );
   }
 
-  if (!config) {
+  if (!config || !Array.isArray(config.services)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE]">
-        <div className="text-red-600">Failed to load services.</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE] px-4">
+        <p className="text-red-600 text-center">Failed to load services.</p>
       </div>
     );
   }
 
-  const whatsappUrl = config.payment.whatsappNumber
-    ? `https://wa.me/${config.payment.whatsappNumber.replace(/\D/g, "")}`
+  const payment = config?.payment;
+  const whatsappUrl = payment?.whatsappNumber
+    ? `https://wa.me/${payment.whatsappNumber.replace(/\D/g, "")}`
     : "#";
 
   return (
@@ -179,6 +180,8 @@ export default function ServicePage() {
   );
 }
 
+const META_AGENCY_SLUG = "meta-agency-ads-account";
+
 function ServiceCard({
   service,
   payPath,
@@ -186,7 +189,8 @@ function ServiceCard({
   service: ServiceItem;
   payPath: string;
 }) {
-  const hasSubCategories = service.subCategories && service.subCategories.length > 0;
+  const isMetaAgency = service.slug === META_AGENCY_SLUG;
+  const hasSubCategories = !isMetaAgency && service.subCategories && service.subCategories.length > 0;
   const displayPrice = hasSubCategories
     ? null
     : service.price;
@@ -197,18 +201,49 @@ function ServiceCard({
     return amount && amount.trim() ? `${payPath}?${params}&amount=${encodeURIComponent(amount.trim())}` : `${payPath}?${params}`;
   };
 
+  const imageUrl = getImageUrl(service.image);
+  const [imgError, setImgError] = useState(false);
+  const showPlaceholder = !imageUrl || imgError;
+
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow">
-      <div className="aspect-video bg-gray-100 relative">
-        <img
-          src={getImageUrl(service.image)}
-          alt={service.name}
-          className="w-full h-full object-cover"
-        />
+      <div className="aspect-video bg-gray-100 relative flex items-center justify-center overflow-hidden">
+        {showPlaceholder ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+            <span className="text-4xl font-bold text-purple-300 select-none" aria-hidden>
+              {service.name.charAt(0)}
+            </span>
+          </div>
+        ) : (
+          <img
+            src={imageUrl}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
       <div className="p-4 sm:p-5">
         <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-2">{service.name}</h3>
-        {hasSubCategories ? (
+        {isMetaAgency ? (
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/service/meta-agency/indian"
+              className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
+            >
+              Indian Agency Ads Account
+            </Link>
+            <Link
+              href="/service/meta-agency/international"
+              className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
+            >
+              International Agency Ads Account
+            </Link>
+          </div>
+        ) : hasSubCategories ? (
           <>
             <ul className="space-y-1 mb-3 sm:mb-4">
               {service.subCategories!.map((sub) => (

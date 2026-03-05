@@ -10,10 +10,21 @@ const { getAdminPassword, setAdminPassword } = require("./lib/admin");
 const app = express();
 const PORT = process.env.PORT || 3001;
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploaded");
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
 
 // CORS: allow all origins (Vercel, custom domains, localhost) so admin panel works from any frontend URL
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: "256kb" }));
 
 function auth(req) {
   const authHeader = req.headers.authorization;
@@ -72,15 +83,37 @@ app.get("/api/admin/config", (req, res) => {
   }
 });
 
+function isValidConfigPatch(body) {
+  if (body.title !== undefined && typeof body.title !== "string") return false;
+  if (body.subtitle !== undefined && typeof body.subtitle !== "string") return false;
+  if (body.services !== undefined) {
+    if (!Array.isArray(body.services)) return false;
+    for (const s of body.services) {
+      if (!s || typeof s.id !== "string" || typeof s.name !== "string" || typeof s.slug !== "string") return false;
+    }
+  }
+  if (body.payment !== undefined) {
+    if (typeof body.payment !== "object" || body.payment === null) return false;
+    const p = body.payment;
+    const keys = ["qrImageUrl", "upiId", "upiName", "whatsappNumber"];
+    for (const k of keys) if (p[k] !== undefined && typeof p[k] !== "string") return false;
+  }
+  return true;
+}
+
 app.patch("/api/admin/config", (req, res) => {
   if (!auth(req)) return res.status(401).json({ error: "Unauthorized" });
   try {
     const body = req.body;
+    if (!body || typeof body !== "object") return res.status(400).json({ error: "Invalid body" });
+    if (!isValidConfigPatch(body)) return res.status(400).json({ error: "Invalid config shape" });
     const config = getConfig();
-    if (body.title !== undefined) config.title = body.title;
-    if (body.subtitle !== undefined) config.subtitle = body.subtitle;
+    if (body.title !== undefined) config.title = String(body.title).slice(0, 500);
+    if (body.subtitle !== undefined) config.subtitle = String(body.subtitle).slice(0, 1000);
     if (body.services !== undefined) config.services = body.services;
     if (body.payment !== undefined) config.payment = body.payment;
+    if (body.metaAgencyIndian !== undefined) config.metaAgencyIndian = body.metaAgencyIndian;
+    if (body.metaAgencyInternational !== undefined) config.metaAgencyInternational = body.metaAgencyInternational;
     saveConfig(config);
     return res.json(config);
   } catch (e) {
@@ -90,9 +123,9 @@ app.patch("/api/admin/config", (req, res) => {
 
 // Admin: login
 app.post("/api/admin/login", (req, res) => {
-  const { password } = req.body || {};
+  const password = req.body && typeof req.body.password === "string" ? req.body.password : "";
   const adminPassword = getAdminPassword();
-  if (password === adminPassword) {
+  if (password && password === adminPassword) {
     return res.json({ token: adminPassword });
   }
   return res.status(401).json({ error: "Invalid password" });
@@ -127,19 +160,31 @@ app.post("/api/admin/change-password", (req, res) => {
   }
 });
 
-// Admin: upload (multer)
+// Admin: upload (multer) – images only, size limit
 const { mkdirSync, existsSync } = require("fs");
 if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
-const upload = multer({ dest: UPLOAD_DIR });
+const upload = multer({
+  dest: UPLOAD_DIR,
+  limits: { fileSize: MAX_UPLOAD_BYTES },
+  fileFilter: (req, file, cb) => {
+    const mime = (file.mimetype || "").toLowerCase();
+    if (ALLOWED_IMAGE_MIMES.includes(mime)) return cb(null, true);
+    cb(new Error("Only images (JPEG, PNG, WebP, GIF) are allowed"));
+  },
+});
 app.post("/api/admin/upload", (req, res, next) => {
   if (!auth(req)) return res.status(401).json({ error: "Unauthorized" });
   upload.single("file")(req, res, (err) => {
-    if (err) return res.status(500).json({ error: "Upload failed" });
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") return res.status(413).json({ error: "File too large (max 5MB)" });
+      return res.status(400).json({ error: err.message || "Upload failed" });
+    }
     const file = req.file;
     const name = (req.body && req.body.name) || "image";
     if (!file) return res.status(400).json({ error: "No file provided" });
     const ext = path.extname(file.originalname) || ".png";
-    const newName = `${name}-${Date.now()}${ext}`;
+    const safeName = String(name).replace(/[^a-z0-9-_]/gi, "-").slice(0, 80);
+    const newName = `${safeName}-${Date.now()}${ext}`;
     const newPath = path.join(UPLOAD_DIR, newName);
     require("fs").renameSync(file.path, newPath);
     const baseUrl = process.env.BACKEND_PUBLIC_URL || `${req.protocol}://${req.get("host")}`;
@@ -152,6 +197,8 @@ app.post("/api/admin/upload", (req, res, next) => {
 app.use("/uploaded", express.static(UPLOAD_DIR));
 
 app.get("/health", (req, res) => res.json({ ok: true }));
+
+app.use((req, res) => res.status(404).json({ error: "Not found" }));
 
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);

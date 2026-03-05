@@ -2,7 +2,15 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { Config, ServiceItem, SubCategory } from "@/lib/types";
+import type {
+  Config,
+  ServiceItem,
+  SubCategory,
+  MetaAgencyIndian,
+  MetaAgencyInternational,
+  MetaAgencyIndianTier,
+  MetaAgencyInternationalCategory,
+} from "@/lib/types";
 import { apiPath, fetchWithTimeout } from "@/lib/api";
 
 const TOKEN_KEY = "adswadi_admin_token";
@@ -26,6 +34,24 @@ export default function AdminPage() {
   });
   const [servicesDraft, setServicesDraft] = useState<ServiceItem[]>([]);
 
+  const defaultMetaAgencyIndian = (): MetaAgencyIndian => ({
+    tiers: [
+      { dailyLimit: "5K", weekly: { price: "", amount: "" }, monthly: { price: "", amount: "" } },
+      { dailyLimit: "20K", weekly: { price: "", amount: "" }, monthly: { price: "", amount: "" } },
+      { dailyLimit: "30K", weekly: { price: "", amount: "" }, monthly: { price: "", amount: "" } },
+    ],
+    needMoreLabel: "Need more daily limit accounts?",
+  });
+  const defaultMetaAgencyInternational = (): MetaAgencyInternational => ({
+    categories: [
+      { name: "White Hat", price: "", amount: "" },
+      { name: "Grey Hat", price: "", amount: "" },
+      { name: "Black Hat", price: "", amount: "" },
+    ],
+  });
+  const [metaAgencyIndianDraft, setMetaAgencyIndianDraft] = useState<MetaAgencyIndian>(defaultMetaAgencyIndian);
+  const [metaAgencyInternationalDraft, setMetaAgencyInternationalDraft] = useState<MetaAgencyInternational>(defaultMetaAgencyInternational);
+
   useEffect(() => {
     const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     setToken(t);
@@ -44,6 +70,16 @@ export default function AdminPage() {
         setSubtitleDraft(data.subtitle);
         setPaymentDraft(data.payment);
         setServicesDraft(JSON.parse(JSON.stringify(data.services)));
+        setMetaAgencyIndianDraft(
+          data.metaAgencyIndian?.tiers?.length
+            ? JSON.parse(JSON.stringify(data.metaAgencyIndian))
+            : defaultMetaAgencyIndian()
+        );
+        setMetaAgencyInternationalDraft(
+          data.metaAgencyInternational?.categories?.length
+            ? JSON.parse(JSON.stringify(data.metaAgencyInternational))
+            : defaultMetaAgencyInternational()
+        );
       })
       .catch((err) => {
         setToken(null);
@@ -135,6 +171,47 @@ export default function AdminPage() {
     svc.subCategories = subs;
     next[serviceIndex] = svc;
     setServicesDraft(next);
+  };
+
+  const handleSaveMetaAgencyIndian = async () => {
+    try {
+      const data = await saveToServer({ metaAgencyIndian: metaAgencyIndianDraft });
+      if (data) {
+        setConfig(data);
+        if (data.metaAgencyIndian) setMetaAgencyIndianDraft(JSON.parse(JSON.stringify(data.metaAgencyIndian)));
+        showMessage("success", "Meta Agency Indian saved.");
+      }
+    } catch {
+      showMessage("error", "Failed to save.");
+    }
+  };
+
+  const handleSaveMetaAgencyInternational = async () => {
+    try {
+      const data = await saveToServer({ metaAgencyInternational: metaAgencyInternationalDraft });
+      if (data) {
+        setConfig(data);
+        if (data.metaAgencyInternational) setMetaAgencyInternationalDraft(JSON.parse(JSON.stringify(data.metaAgencyInternational)));
+        showMessage("success", "Meta Agency International saved.");
+      }
+    } catch {
+      showMessage("error", "Failed to save.");
+    }
+  };
+
+  const updateMetaAgencyIndianTier = (tierIndex: number, field: "dailyLimit" | "weekly" | "monthly", subField: string, value: string) => {
+    const next = JSON.parse(JSON.stringify(metaAgencyIndianDraft));
+    const tier = next.tiers[tierIndex] as MetaAgencyIndianTier;
+    if (field === "dailyLimit") tier.dailyLimit = value;
+    else if (field === "weekly") (tier.weekly as Record<string, string>)[subField] = value;
+    else if (field === "monthly") (tier.monthly as Record<string, string>)[subField] = value;
+    setMetaAgencyIndianDraft(next);
+  };
+
+  const updateMetaAgencyInternationalCategory = (catIndex: number, field: keyof MetaAgencyInternationalCategory, value: string) => {
+    const next = JSON.parse(JSON.stringify(metaAgencyInternationalDraft));
+    next.categories[catIndex] = { ...next.categories[catIndex], [field]: value };
+    setMetaAgencyInternationalDraft(next);
   };
 
   if (token === null && !config) {
@@ -283,6 +360,132 @@ export default function AdminPage() {
             }}
             onError={(text) => showMessage("error", text)}
           />
+        </section>
+
+        {/* Meta Agency detail pages */}
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Meta Agency detail pages</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            When visitors click &quot;Meta Agency Ads Account&quot; on the home page, they choose Indian or International. Edit prices and amounts for each page below.
+          </p>
+
+          <div className="space-y-8">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h3 className="font-medium text-gray-800">Indian Meta Agency (Daily limit 5K / 20K / 30K)</h3>
+                <SaveButton onClick={handleSaveMetaAgencyIndian} label="Save Indian" />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-gray-600 mb-1">Text above WhatsApp button</label>
+                <input
+                  type="text"
+                  value={metaAgencyIndianDraft.needMoreLabel ?? ""}
+                  onChange={(e) => setMetaAgencyIndianDraft((d) => ({ ...d, needMoreLabel: e.target.value }))}
+                  placeholder="Need more daily limit accounts?"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="space-y-4">
+                {metaAgencyIndianDraft.tiers.map((tier, tierIdx) => (
+                  <div key={tierIdx} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                    <div className="mb-3">
+                      <span className="text-xs text-gray-500 block">Daily limit label</span>
+                      <input
+                        type="text"
+                        value={tier.dailyLimit}
+                        onChange={(e) => updateMetaAgencyIndianTier(tierIdx, "dailyLimit", "", e.target.value)}
+                        placeholder="5K"
+                        className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-xs text-gray-500 block mb-1">Weekly – display price</span>
+                        <input
+                          type="text"
+                          value={tier.weekly.price}
+                          onChange={(e) => updateMetaAgencyIndianTier(tierIdx, "weekly", "price", e.target.value)}
+                          placeholder="₹X,XXX"
+                          className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                        />
+                        <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={tier.weekly.amount ?? ""}
+                          onChange={(e) => updateMetaAgencyIndianTier(tierIdx, "weekly", "amount", e.target.value)}
+                          placeholder="4999"
+                          className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 block mb-1">Monthly – display price</span>
+                        <input
+                          type="text"
+                          value={tier.monthly.price}
+                          onChange={(e) => updateMetaAgencyIndianTier(tierIdx, "monthly", "price", e.target.value)}
+                          placeholder="₹X,XXX"
+                          className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                        />
+                        <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={tier.monthly.amount ?? ""}
+                          onChange={(e) => updateMetaAgencyIndianTier(tierIdx, "monthly", "amount", e.target.value)}
+                          placeholder="9999"
+                          className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h3 className="font-medium text-gray-800">International Meta Agency (White Hat / Grey Hat / Black Hat)</h3>
+                <SaveButton onClick={handleSaveMetaAgencyInternational} label="Save International" />
+              </div>
+              <div className="space-y-3">
+                {metaAgencyInternationalDraft.categories.map((cat, catIdx) => (
+                  <div key={catIdx} className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-gray-50/50 rounded-lg border border-gray-200">
+                    <div>
+                      <span className="text-xs text-gray-500 block">Name</span>
+                      <input
+                        type="text"
+                        value={cat.name}
+                        onChange={(e) => updateMetaAgencyInternationalCategory(catIdx, "name", e.target.value)}
+                        className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 block">Display price</span>
+                      <input
+                        type="text"
+                        value={cat.price}
+                        onChange={(e) => updateMetaAgencyInternationalCategory(catIdx, "price", e.target.value)}
+                        placeholder="₹X,XXX"
+                        className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 block">Amount for QR</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={cat.amount ?? ""}
+                        onChange={(e) => updateMetaAgencyInternationalCategory(catIdx, "amount", e.target.value)}
+                        placeholder="9999"
+                        className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Services */}

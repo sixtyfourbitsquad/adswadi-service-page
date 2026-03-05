@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,6 +12,17 @@ export const metadata: Metadata = {
     ],
     apple: "/favicons/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "Adswadi – Digital Marketing & Ads Services",
+    description: "Unlock greater profits from every ad. Meta ads, Google ads, creative design, and more.",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#6B21A8",
 };
 
 export default function RootLayout({
@@ -21,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen bg-[#FAF9FC]">
+      <body className="antialiased min-h-screen bg-[#FAF9FC] min-w-[280px]">
         {children}
       </body>
     </html>

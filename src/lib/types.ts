@@ -24,9 +24,38 @@ export type PaymentGateway = {
   whatsappNumber: string;
 };
 
+/** One tier on Indian Meta Agency page: daily limit label + weekly/monthly options */
+export type MetaAgencyIndianTier = {
+  dailyLimit: string;
+  weekly: { price: string; amount?: string };
+  monthly: { price: string; amount?: string };
+};
+
+/** Indian Meta Agency detail page: 3 tiers (e.g. 5K, 20K, 30K), each with Weekly/Monthly */
+export type MetaAgencyIndian = {
+  tiers: MetaAgencyIndianTier[];
+  needMoreLabel?: string;
+};
+
+/** One category on International Meta Agency page (e.g. White Hat) */
+export type MetaAgencyInternationalCategory = {
+  name: string;
+  price: string;
+  amount?: string;
+};
+
+/** International Meta Agency detail page: White Hat, Grey Hat, Black Hat */
+export type MetaAgencyInternational = {
+  categories: MetaAgencyInternationalCategory[];
+};
+
 export type Config = {
   title: string;
   subtitle: string;
   services: ServiceItem[];
   payment: PaymentGateway;
+  /** Indian Meta Agency page: 3 tiers with daily limit + weekly/monthly */
+  metaAgencyIndian?: MetaAgencyIndian;
+  /** International Meta Agency page: White Hat, Grey Hat, Black Hat */
+  metaAgencyInternational?: MetaAgencyInternational;
 };

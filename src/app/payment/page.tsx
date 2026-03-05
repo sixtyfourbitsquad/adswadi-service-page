@@ -40,10 +40,10 @@ function PaymentContent() {
     );
   }
 
-  if (!config) {
+  if (!config || !config.payment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE]">
-        <div className="text-red-600">Failed to load payment details.</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE] px-4">
+        <p className="text-red-600 text-center">Failed to load payment details.</p>
       </div>
     );
   }
@@ -111,11 +111,15 @@ function PaymentContent() {
                 alt="Payment QR Code"
                 className="w-56 h-56 object-contain border border-gray-200 rounded-xl mx-auto"
               />
-              {amountParam && (
-                <p className="text-center font-bold text-gray-700 text-base mt-3">
-                  Amount: ₹{Number(amountParam).toLocaleString("en-IN")}
-                </p>
-              )}
+              {amountParam && (() => {
+                const num = Number(String(amountParam).replace(/,/g, ""));
+                if (Number.isNaN(num) || num < 0) return null;
+                return (
+                  <p className="text-center font-bold text-gray-700 text-base mt-3">
+                    Amount: ₹{num.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                  </p>
+                );
+              })()}
             </div>
           ) : (
             <div className="mb-6 flex justify-center items-center w-56 h-56 mx-auto border-2 border-dashed border-gray-200 rounded-xl text-gray-500 font-semibold text-sm text-center px-4">
