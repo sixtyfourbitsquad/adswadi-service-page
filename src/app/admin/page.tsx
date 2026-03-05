@@ -10,6 +10,7 @@ import type {
   MetaAgencyInternational,
   MetaAgencyIndianTier,
   MetaAgencyInternationalCategory,
+  GoogleAdsDetail,
 } from "@/lib/types";
 import { apiPath, fetchWithTimeout } from "@/lib/api";
 
@@ -51,6 +52,11 @@ export default function AdminPage() {
   });
   const [metaAgencyIndianDraft, setMetaAgencyIndianDraft] = useState<MetaAgencyIndian>(defaultMetaAgencyIndian);
   const [metaAgencyInternationalDraft, setMetaAgencyInternationalDraft] = useState<MetaAgencyInternational>(defaultMetaAgencyInternational);
+  const defaultGoogleAdsDetail = (): GoogleAdsDetail => ({
+    weekly: { indian: { price: "", amount: "" }, international: { price: "", amount: "" } },
+    monthly: { indian: { price: "", amount: "" }, international: { price: "", amount: "" } },
+  });
+  const [googleAdsDetailDraft, setGoogleAdsDetailDraft] = useState<GoogleAdsDetail>(defaultGoogleAdsDetail);
 
   useEffect(() => {
     const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
@@ -79,6 +85,11 @@ export default function AdminPage() {
           data.metaAgencyInternational?.categories?.length
             ? JSON.parse(JSON.stringify(data.metaAgencyInternational))
             : defaultMetaAgencyInternational()
+        );
+        setGoogleAdsDetailDraft(
+          data.googleAdsDetail?.weekly
+            ? JSON.parse(JSON.stringify(data.googleAdsDetail))
+            : defaultGoogleAdsDetail()
         );
       })
       .catch((err) => {
@@ -212,6 +223,25 @@ export default function AdminPage() {
     const next = JSON.parse(JSON.stringify(metaAgencyInternationalDraft));
     next.categories[catIndex] = { ...next.categories[catIndex], [field]: value };
     setMetaAgencyInternationalDraft(next);
+  };
+
+  const handleSaveGoogleAdsDetail = async () => {
+    try {
+      const data = await saveToServer({ googleAdsDetail: googleAdsDetailDraft });
+      if (data) {
+        setConfig(data);
+        if (data.googleAdsDetail) setGoogleAdsDetailDraft(JSON.parse(JSON.stringify(data.googleAdsDetail)));
+        showMessage("success", "Google Ads detail saved.");
+      }
+    } catch {
+      showMessage("error", "Failed to save.");
+    }
+  };
+
+  const updateGoogleAdsDetailOption = (period: "weekly" | "monthly", region: "indian" | "international", field: "price" | "amount", value: string) => {
+    const next = JSON.parse(JSON.stringify(googleAdsDetailDraft));
+    next[period][region][field] = value;
+    setGoogleAdsDetailDraft(next);
   };
 
   if (token === null && !config) {
@@ -483,6 +513,106 @@ export default function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Google Ads detail (Weekly / Monthly → Indian & International) */}
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Google Ads – Weekly / Monthly (Indian & International)</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            When visitors click &quot;Pay Weekly&quot; or &quot;Pay Monthly&quot; on Google Ads, they see Indian and International options. Set display price and amount for QR below.
+          </p>
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <span className="font-medium text-gray-800">Prices and amounts</span>
+            <SaveButton onClick={handleSaveGoogleAdsDetail} label="Save Google Ads" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+              <h3 className="font-medium text-gray-800 mb-3">Weekly</h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs text-gray-500 block">Indian – display price</span>
+                  <input
+                    type="text"
+                    value={googleAdsDetailDraft.weekly.indian.price}
+                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "indian", "price", e.target.value)}
+                    placeholder="₹X,XXX"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={googleAdsDetailDraft.weekly.indian.amount ?? ""}
+                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "indian", "amount", e.target.value)}
+                    placeholder="4999"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 block">International – display price</span>
+                  <input
+                    type="text"
+                    value={googleAdsDetailDraft.weekly.international.price}
+                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "international", "price", e.target.value)}
+                    placeholder="₹X,XXX"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={googleAdsDetailDraft.weekly.international.amount ?? ""}
+                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "international", "amount", e.target.value)}
+                    placeholder="4999"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+              <h3 className="font-medium text-gray-800 mb-3">Monthly</h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs text-gray-500 block">Indian – display price</span>
+                  <input
+                    type="text"
+                    value={googleAdsDetailDraft.monthly.indian.price}
+                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "indian", "price", e.target.value)}
+                    placeholder="₹X,XXX"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={googleAdsDetailDraft.monthly.indian.amount ?? ""}
+                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "indian", "amount", e.target.value)}
+                    placeholder="9999"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 block">International – display price</span>
+                  <input
+                    type="text"
+                    value={googleAdsDetailDraft.monthly.international.price}
+                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "international", "price", e.target.value)}
+                    placeholder="₹X,XXX"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={googleAdsDetailDraft.monthly.international.amount ?? ""}
+                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "international", "amount", e.target.value)}
+                    placeholder="9999"
+                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>

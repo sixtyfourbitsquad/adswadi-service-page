@@ -49,6 +49,13 @@ export type MetaAgencyInternational = {
   categories: MetaAgencyInternationalCategory[];
 };
 
+/** Google Ads detail: Weekly/Monthly each have Indian + International options */
+export type GoogleAdsOption = { price: string; amount?: string };
+export type GoogleAdsDetail = {
+  weekly: { indian: GoogleAdsOption; international: GoogleAdsOption };
+  monthly: { indian: GoogleAdsOption; international: GoogleAdsOption };
+};
+
 export type Config = {
   title: string;
   subtitle: string;
@@ -58,4 +65,6 @@ export type Config = {
   metaAgencyIndian?: MetaAgencyIndian;
   /** International Meta Agency page: White Hat, Grey Hat, Black Hat */
   metaAgencyInternational?: MetaAgencyInternational;
+  /** Google Ads Weekly/Monthly → Indian & International (values set in admin) */
+  googleAdsDetail?: GoogleAdsDetail;
 };

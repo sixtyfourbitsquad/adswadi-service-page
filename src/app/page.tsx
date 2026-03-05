@@ -181,6 +181,7 @@ export default function ServicePage() {
 }
 
 const META_AGENCY_SLUG = "meta-agency-ads-account";
+const GOOGLE_ADS_SLUG = "google-ads";
 
 function ServiceCard({
   service,
@@ -190,7 +191,8 @@ function ServiceCard({
   payPath: string;
 }) {
   const isMetaAgency = service.slug === META_AGENCY_SLUG;
-  const hasSubCategories = !isMetaAgency && service.subCategories && service.subCategories.length > 0;
+  const isGoogleAds = service.slug === GOOGLE_ADS_SLUG;
+  const hasSubCategories = !isMetaAgency && !isGoogleAds && service.subCategories && service.subCategories.length > 0;
   const displayPrice = hasSubCategories
     ? null
     : service.price;
@@ -241,6 +243,21 @@ function ServiceCard({
               className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
             >
               International Agency Ads Account
+            </Link>
+          </div>
+        ) : isGoogleAds ? (
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/service/google-ads/weekly"
+              className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
+            >
+              Pay Weekly
+            </Link>
+            <Link
+              href="/service/google-ads/monthly"
+              className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
+            >
+              Pay Monthly
             </Link>
           </div>
         ) : hasSubCategories ? (

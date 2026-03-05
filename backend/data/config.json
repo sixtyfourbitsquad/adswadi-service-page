@@ -125,5 +125,15 @@
       { "name": "Grey Hat", "price": "", "amount": "" },
       { "name": "Black Hat", "price": "", "amount": "" }
     ]
+  },
+  "googleAdsDetail": {
+    "weekly": {
+      "indian": { "price": "", "amount": "" },
+      "international": { "price": "", "amount": "" }
+    },
+    "monthly": {
+      "indian": { "price": "", "amount": "" },
+      "international": { "price": "", "amount": "" }
+    }
   }
 }

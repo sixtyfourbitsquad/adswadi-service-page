@@ -98,6 +98,19 @@ function isValidConfigPatch(body) {
     const keys = ["qrImageUrl", "upiId", "upiName", "whatsappNumber"];
     for (const k of keys) if (p[k] !== undefined && typeof p[k] !== "string") return false;
   }
+  if (body.googleAdsDetail !== undefined) {
+    const g = body.googleAdsDetail;
+    if (typeof g !== "object" || g === null) return false;
+    for (const period of ["weekly", "monthly"]) {
+      if (!g[period] || typeof g[period] !== "object") return false;
+      for (const region of ["indian", "international"]) {
+        const o = g[period][region];
+        if (!o || typeof o !== "object") return false;
+        if (typeof o.price !== "string") return false;
+        if (o.amount !== undefined && typeof o.amount !== "string") return false;
+      }
+    }
+  }
   return true;
 }
 
@@ -114,6 +127,7 @@ app.patch("/api/admin/config", (req, res) => {
     if (body.payment !== undefined) config.payment = body.payment;
     if (body.metaAgencyIndian !== undefined) config.metaAgencyIndian = body.metaAgencyIndian;
     if (body.metaAgencyInternational !== undefined) config.metaAgencyInternational = body.metaAgencyInternational;
+    if (body.googleAdsDetail !== undefined) config.googleAdsDetail = body.googleAdsDetail;
     saveConfig(config);
     return res.json(config);
   } catch (e) {
