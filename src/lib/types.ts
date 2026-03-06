@@ -49,11 +49,22 @@ export type MetaAgencyInternational = {
   categories: MetaAgencyInternationalCategory[];
 };
 
-/** Google Ads detail: Weekly/Monthly each have Indian + International options */
-export type GoogleAdsOption = { price: string; amount?: string };
-export type GoogleAdsDetail = {
-  weekly: { indian: GoogleAdsOption; international: GoogleAdsOption };
-  monthly: { indian: GoogleAdsOption; international: GoogleAdsOption };
+/** Indian or International option for Google Agency (price + amount for QR) */
+export type GoogleAgencyOption = {
+  price: string;
+  amount?: string;
+};
+
+/** Google Agency Weekly page: Indian + International */
+export type GoogleAgencyWeekly = {
+  indian: GoogleAgencyOption;
+  international: GoogleAgencyOption;
+};
+
+/** Google Agency Monthly page: Indian + International */
+export type GoogleAgencyMonthly = {
+  indian: GoogleAgencyOption;
+  international: GoogleAgencyOption;
 };
 
 export type Config = {
@@ -65,6 +76,12 @@ export type Config = {
   metaAgencyIndian?: MetaAgencyIndian;
   /** International Meta Agency page: White Hat, Grey Hat, Black Hat */
   metaAgencyInternational?: MetaAgencyInternational;
-  /** Google Ads Weekly/Monthly → Indian & International (values set in admin) */
-  googleAdsDetail?: GoogleAdsDetail;
+  /** Google Agency – Weekly: Indian & International options (legacy) */
+  googleAgencyWeekly?: GoogleAgencyWeekly;
+  /** Google Agency – Monthly: Indian & International options (legacy) */
+  googleAgencyMonthly?: GoogleAgencyMonthly;
+  /** Google Agency – direct to payment: Indian option */
+  googleAgencyIndian?: GoogleAgencyOption;
+  /** Google Agency – direct to payment: International option */
+  googleAgencyInternational?: GoogleAgencyOption;
 };

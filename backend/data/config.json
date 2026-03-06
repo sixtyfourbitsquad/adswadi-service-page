@@ -6,7 +6,7 @@
       "id": "meta-ads",
       "name": "Meta Ads",
       "slug": "meta-ads",
-      "image": "/Images/meta.png",
+      "image": "/Images/metaads.png",
       "subCategories": [
         { "name": "Weekly", "price": "", "amount": "" },
         { "name": "Monthly", "price": "", "amount": "" }
@@ -16,7 +16,7 @@
       "id": "google-ads",
       "name": "Google Ads",
       "slug": "google-ads",
-      "image": "/Images/google.png",
+      "image": "/Images/googleads.png",
       "subCategories": [
         { "name": "Weekly", "price": "", "amount": "" },
         { "name": "Monthly", "price": "", "amount": "" }
@@ -26,7 +26,7 @@
       "id": "snapchat-ads",
       "name": "Snapchat Ads",
       "slug": "snapchat-ads",
-      "image": "/Images/snapchat.png",
+      "image": "/Images/snapchatads.png",
       "subCategories": [
         { "name": "Weekly", "price": "", "amount": "" },
         { "name": "Monthly", "price": "", "amount": "" }
@@ -36,7 +36,7 @@
       "id": "website-development",
       "name": "Website Development",
       "slug": "website-development",
-      "image": "/Images/websitedevlopment.png",
+      "image": "/Images/webdevlopment.png",
       "price": "",
       "amount": ""
     },
@@ -44,7 +44,7 @@
       "id": "landing-page",
       "name": "Landing Page Design",
       "slug": "landing-page-design",
-      "image": "/Images/landingpagedesignservice.png",
+      "image": "/Images/landingpagedesign.png",
       "price": "",
       "amount": ""
     },
@@ -52,7 +52,7 @@
       "id": "whatsapp-api",
       "name": "WhatsApp API",
       "slug": "whatsapp-api",
-      "image": "/Images/whatappapiprovider.png",
+      "image": "/Images/whatsappapi.png",
       "price": "",
       "amount": ""
     },
@@ -60,7 +60,7 @@
       "id": "meta-agency",
       "name": "Meta Agency Ads Account",
       "slug": "meta-agency-ads-account",
-      "image": "/Images/metaagecnyadsaccount.png",
+      "image": "/Images/metaagencyadsaccount.png",
       "price": "",
       "amount": ""
     },
@@ -76,7 +76,7 @@
       "id": "social-media",
       "name": "Social Media Management",
       "slug": "social-media-management",
-      "image": "/Images/socialmediamanagement.png",
+      "image": "/Images/socialmediamanagment.png",
       "price": "",
       "amount": ""
     },
@@ -84,7 +84,7 @@
       "id": "ads-creative",
       "name": "Ads Creative & Design Services",
       "slug": "ads-creative-design",
-      "image": "/Images/adscreativedesign.png",
+      "image": "/Images/adscreative.png",
       "price": "",
       "amount": ""
     },
@@ -100,7 +100,7 @@
       "id": "thumbnail-design",
       "name": "Thumbnail Design Services",
       "slug": "thumbnail-design-services",
-      "image": "/Images/thumbnaildesign.png",
+      "image": "/Images/thumbnail.png",
       "price": "",
       "amount": ""
     }
@@ -126,14 +126,14 @@
       { "name": "Black Hat", "price": "", "amount": "" }
     ]
   },
-  "googleAdsDetail": {
-    "weekly": {
-      "indian": { "price": "", "amount": "" },
-      "international": { "price": "", "amount": "" }
-    },
-    "monthly": {
-      "indian": { "price": "", "amount": "" },
-      "international": { "price": "", "amount": "" }
-    }
-  }
+  "googleAgencyWeekly": {
+    "indian": { "price": "", "amount": "" },
+    "international": { "price": "", "amount": "" }
+  },
+  "googleAgencyMonthly": {
+    "indian": { "price": "", "amount": "" },
+    "international": { "price": "", "amount": "" }
+  },
+  "googleAgencyIndian": { "price": "", "amount": "" },
+  "googleAgencyInternational": { "price": "", "amount": "" }
 }

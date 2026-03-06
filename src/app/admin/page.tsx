@@ -10,7 +10,9 @@ import type {
   MetaAgencyInternational,
   MetaAgencyIndianTier,
   MetaAgencyInternationalCategory,
-  GoogleAdsDetail,
+  GoogleAgencyWeekly,
+  GoogleAgencyMonthly,
+  GoogleAgencyOption,
 } from "@/lib/types";
 import { apiPath, fetchWithTimeout } from "@/lib/api";
 
@@ -52,11 +54,21 @@ export default function AdminPage() {
   });
   const [metaAgencyIndianDraft, setMetaAgencyIndianDraft] = useState<MetaAgencyIndian>(defaultMetaAgencyIndian);
   const [metaAgencyInternationalDraft, setMetaAgencyInternationalDraft] = useState<MetaAgencyInternational>(defaultMetaAgencyInternational);
-  const defaultGoogleAdsDetail = (): GoogleAdsDetail => ({
-    weekly: { indian: { price: "", amount: "" }, international: { price: "", amount: "" } },
-    monthly: { indian: { price: "", amount: "" }, international: { price: "", amount: "" } },
+
+  const defaultGoogleAgencyWeekly = (): GoogleAgencyWeekly => ({
+    indian: { price: "", amount: "" },
+    international: { price: "", amount: "" },
   });
-  const [googleAdsDetailDraft, setGoogleAdsDetailDraft] = useState<GoogleAdsDetail>(defaultGoogleAdsDetail);
+  const defaultGoogleAgencyMonthly = (): GoogleAgencyMonthly => ({
+    indian: { price: "", amount: "" },
+    international: { price: "", amount: "" },
+  });
+  const [googleAgencyWeeklyDraft, setGoogleAgencyWeeklyDraft] = useState<GoogleAgencyWeekly>(defaultGoogleAgencyWeekly);
+  const [googleAgencyMonthlyDraft, setGoogleAgencyMonthlyDraft] = useState<GoogleAgencyMonthly>(defaultGoogleAgencyMonthly);
+
+  const defaultGoogleAgencyOption = (): GoogleAgencyOption => ({ price: "", amount: "" });
+  const [googleAgencyIndianDraft, setGoogleAgencyIndianDraft] = useState<GoogleAgencyOption>(defaultGoogleAgencyOption);
+  const [googleAgencyInternationalDraft, setGoogleAgencyInternationalDraft] = useState<GoogleAgencyOption>(defaultGoogleAgencyOption);
 
   useEffect(() => {
     const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
@@ -86,10 +98,25 @@ export default function AdminPage() {
             ? JSON.parse(JSON.stringify(data.metaAgencyInternational))
             : defaultMetaAgencyInternational()
         );
-        setGoogleAdsDetailDraft(
-          data.googleAdsDetail?.weekly
-            ? JSON.parse(JSON.stringify(data.googleAdsDetail))
-            : defaultGoogleAdsDetail()
+        setGoogleAgencyWeeklyDraft(
+          data.googleAgencyWeekly
+            ? JSON.parse(JSON.stringify(data.googleAgencyWeekly))
+            : defaultGoogleAgencyWeekly()
+        );
+        setGoogleAgencyMonthlyDraft(
+          data.googleAgencyMonthly
+            ? JSON.parse(JSON.stringify(data.googleAgencyMonthly))
+            : defaultGoogleAgencyMonthly()
+        );
+        setGoogleAgencyIndianDraft(
+          data.googleAgencyIndian
+            ? JSON.parse(JSON.stringify(data.googleAgencyIndian))
+            : defaultGoogleAgencyOption()
+        );
+        setGoogleAgencyInternationalDraft(
+          data.googleAgencyInternational
+            ? JSON.parse(JSON.stringify(data.googleAgencyInternational))
+            : defaultGoogleAgencyOption()
         );
       })
       .catch((err) => {
@@ -225,23 +252,66 @@ export default function AdminPage() {
     setMetaAgencyInternationalDraft(next);
   };
 
-  const handleSaveGoogleAdsDetail = async () => {
+  const handleSaveGoogleAgencyWeekly = async () => {
     try {
-      const data = await saveToServer({ googleAdsDetail: googleAdsDetailDraft });
+      const data = await saveToServer({ googleAgencyWeekly: googleAgencyWeeklyDraft });
       if (data) {
         setConfig(data);
-        if (data.googleAdsDetail) setGoogleAdsDetailDraft(JSON.parse(JSON.stringify(data.googleAdsDetail)));
-        showMessage("success", "Google Ads detail saved.");
+        if (data.googleAgencyWeekly) setGoogleAgencyWeeklyDraft(JSON.parse(JSON.stringify(data.googleAgencyWeekly)));
+        showMessage("success", "Google Agency Weekly saved.");
       }
     } catch {
       showMessage("error", "Failed to save.");
     }
   };
 
-  const updateGoogleAdsDetailOption = (period: "weekly" | "monthly", region: "indian" | "international", field: "price" | "amount", value: string) => {
-    const next = JSON.parse(JSON.stringify(googleAdsDetailDraft));
-    next[period][region][field] = value;
-    setGoogleAdsDetailDraft(next);
+  const handleSaveGoogleAgencyMonthly = async () => {
+    try {
+      const data = await saveToServer({ googleAgencyMonthly: googleAgencyMonthlyDraft });
+      if (data) {
+        setConfig(data);
+        if (data.googleAgencyMonthly) setGoogleAgencyMonthlyDraft(JSON.parse(JSON.stringify(data.googleAgencyMonthly)));
+        showMessage("success", "Google Agency Monthly saved.");
+      }
+    } catch {
+      showMessage("error", "Failed to save.");
+    }
+  };
+
+  const handleSaveGoogleAgencyDirect = async () => {
+    try {
+      const data = await saveToServer({
+        googleAgencyIndian: googleAgencyIndianDraft,
+        googleAgencyInternational: googleAgencyInternationalDraft,
+      });
+      if (data) {
+        setConfig(data);
+        if (data.googleAgencyIndian) setGoogleAgencyIndianDraft(JSON.parse(JSON.stringify(data.googleAgencyIndian)));
+        if (data.googleAgencyInternational) setGoogleAgencyInternationalDraft(JSON.parse(JSON.stringify(data.googleAgencyInternational)));
+        showMessage("success", "Google Agency (Indian & International) saved.");
+      }
+    } catch {
+      showMessage("error", "Failed to save.");
+    }
+  };
+
+  const updateGoogleAgencyOption = (
+    which: "weekly" | "monthly",
+    region: "indian" | "international",
+    field: "price" | "amount",
+    value: string
+  ) => {
+    if (which === "weekly") {
+      setGoogleAgencyWeeklyDraft((d) => ({
+        ...d,
+        [region]: { ...d[region], [field]: value },
+      }));
+    } else {
+      setGoogleAgencyMonthlyDraft((d) => ({
+        ...d,
+        [region]: { ...d[region], [field]: value },
+      }));
+    }
   };
 
   if (token === null && !config) {
@@ -286,10 +356,10 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+    <div className="min-h-screen bg-gray-100 py-6 sm:py-8 px-3 sm:px-4">
       <div className="max-w-4xl mx-auto">
-        <header className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
+        <header className="flex items-center justify-between mb-6 sm:mb-8 flex-wrap gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Admin Panel</h1>
           <div className="flex items-center gap-4 flex-wrap">
             {message && (
               <span
@@ -518,101 +588,55 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* Google Ads detail (Weekly / Monthly → Indian & International) */}
+        {/* Google Agency Ads Account – Indian & International (direct to payment) */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Google Ads – Weekly / Monthly (Indian & International)</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">Google Agency Ads Account</h2>
           <p className="text-sm text-gray-500 mb-6">
-            When visitors click &quot;Pay Weekly&quot; or &quot;Pay Monthly&quot; on Google Ads, they see Indian and International options. Set display price and amount for QR below.
+            Two buttons on the card: &quot;Indian Agency Ads Account&quot; and &quot;International Agency Ads Account&quot;. Each goes directly to the payment page with the amount you set below.
           </p>
           <div className="flex items-center justify-between gap-2 mb-4">
-            <span className="font-medium text-gray-800">Prices and amounts</span>
-            <SaveButton onClick={handleSaveGoogleAdsDetail} label="Save Google Ads" />
+            <span className="font-medium text-gray-800">Set price and amount for each option</span>
+            <SaveButton onClick={handleSaveGoogleAgencyDirect} label="Save" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
-              <h3 className="font-medium text-gray-800 mb-3">Weekly</h3>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-xs text-gray-500 block">Indian – display price</span>
-                  <input
-                    type="text"
-                    value={googleAdsDetailDraft.weekly.indian.price}
-                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "indian", "price", e.target.value)}
-                    placeholder="₹X,XXX"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={googleAdsDetailDraft.weekly.indian.amount ?? ""}
-                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "indian", "amount", e.target.value)}
-                    placeholder="4999"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 block">International – display price</span>
-                  <input
-                    type="text"
-                    value={googleAdsDetailDraft.weekly.international.price}
-                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "international", "price", e.target.value)}
-                    placeholder="₹X,XXX"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={googleAdsDetailDraft.weekly.international.amount ?? ""}
-                    onChange={(e) => updateGoogleAdsDetailOption("weekly", "international", "amount", e.target.value)}
-                    placeholder="4999"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                </div>
+              <span className="text-sm font-medium text-gray-700 block mb-2">Indian Agency Ads Account</span>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Display price (e.g. ₹X,XXX)"
+                  value={googleAgencyIndianDraft.price}
+                  onChange={(e) => setGoogleAgencyIndianDraft((d) => ({ ...d, price: e.target.value }))}
+                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Amount for payment QR"
+                  value={googleAgencyIndianDraft.amount ?? ""}
+                  onChange={(e) => setGoogleAgencyIndianDraft((d) => ({ ...d, amount: e.target.value }))}
+                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                />
               </div>
             </div>
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
-              <h3 className="font-medium text-gray-800 mb-3">Monthly</h3>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-xs text-gray-500 block">Indian – display price</span>
-                  <input
-                    type="text"
-                    value={googleAdsDetailDraft.monthly.indian.price}
-                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "indian", "price", e.target.value)}
-                    placeholder="₹X,XXX"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={googleAdsDetailDraft.monthly.indian.amount ?? ""}
-                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "indian", "amount", e.target.value)}
-                    placeholder="9999"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 block">International – display price</span>
-                  <input
-                    type="text"
-                    value={googleAdsDetailDraft.monthly.international.price}
-                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "international", "price", e.target.value)}
-                    placeholder="₹X,XXX"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                  <span className="text-xs text-gray-500 block mt-1">Amount for QR</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={googleAdsDetailDraft.monthly.international.amount ?? ""}
-                    onChange={(e) => updateGoogleAdsDetailOption("monthly", "international", "amount", e.target.value)}
-                    placeholder="9999"
-                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-                  />
-                </div>
+              <span className="text-sm font-medium text-gray-700 block mb-2">International Agency Ads Account</span>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Display price (e.g. ₹X,XXX)"
+                  value={googleAgencyInternationalDraft.price}
+                  onChange={(e) => setGoogleAgencyInternationalDraft((d) => ({ ...d, price: e.target.value }))}
+                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Amount for payment QR"
+                  value={googleAgencyInternationalDraft.amount ?? ""}
+                  onChange={(e) => setGoogleAgencyInternationalDraft((d) => ({ ...d, amount: e.target.value }))}
+                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
+                />
               </div>
             </div>
           </div>

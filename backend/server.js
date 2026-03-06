@@ -98,19 +98,21 @@ function isValidConfigPatch(body) {
     const keys = ["qrImageUrl", "upiId", "upiName", "whatsappNumber"];
     for (const k of keys) if (p[k] !== undefined && typeof p[k] !== "string") return false;
   }
-  if (body.googleAdsDetail !== undefined) {
-    const g = body.googleAdsDetail;
+  if (body.googleAgencyWeekly !== undefined) {
+    const g = body.googleAgencyWeekly;
     if (typeof g !== "object" || g === null) return false;
-    for (const period of ["weekly", "monthly"]) {
-      if (!g[period] || typeof g[period] !== "object") return false;
-      for (const region of ["indian", "international"]) {
-        const o = g[period][region];
-        if (!o || typeof o !== "object") return false;
-        if (typeof o.price !== "string") return false;
-        if (o.amount !== undefined && typeof o.amount !== "string") return false;
-      }
-    }
+    if (g.indian !== undefined && (typeof g.indian !== "object" || g.indian === null)) return false;
+    if (g.international !== undefined && (typeof g.international !== "object" || g.international === null)) return false;
   }
+  if (body.googleAgencyMonthly !== undefined) {
+    const g = body.googleAgencyMonthly;
+    if (typeof g !== "object" || g === null) return false;
+    if (g.indian !== undefined && (typeof g.indian !== "object" || g.indian === null)) return false;
+    if (g.international !== undefined && (typeof g.international !== "object" || g.international === null)) return false;
+  }
+  const opt = (o) => o === undefined || (typeof o === "object" && o !== null && (o.price === undefined || typeof o.price === "string") && (o.amount === undefined || typeof o.amount === "string"));
+  if (body.googleAgencyIndian !== undefined && !opt(body.googleAgencyIndian)) return false;
+  if (body.googleAgencyInternational !== undefined && !opt(body.googleAgencyInternational)) return false;
   return true;
 }
 
@@ -127,7 +129,10 @@ app.patch("/api/admin/config", (req, res) => {
     if (body.payment !== undefined) config.payment = body.payment;
     if (body.metaAgencyIndian !== undefined) config.metaAgencyIndian = body.metaAgencyIndian;
     if (body.metaAgencyInternational !== undefined) config.metaAgencyInternational = body.metaAgencyInternational;
-    if (body.googleAdsDetail !== undefined) config.googleAdsDetail = body.googleAdsDetail;
+    if (body.googleAgencyWeekly !== undefined) config.googleAgencyWeekly = body.googleAgencyWeekly;
+    if (body.googleAgencyMonthly !== undefined) config.googleAgencyMonthly = body.googleAgencyMonthly;
+    if (body.googleAgencyIndian !== undefined) config.googleAgencyIndian = body.googleAgencyIndian;
+    if (body.googleAgencyInternational !== undefined) config.googleAgencyInternational = body.googleAgencyInternational;
     saveConfig(config);
     return res.json(config);
   } catch (e) {

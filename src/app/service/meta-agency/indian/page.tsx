@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Config, MetaAgencyIndianTier } from "@/lib/types";
-import { apiPath } from "@/lib/api";
+import { apiPath, fetchWithTimeout } from "@/lib/api";
 
 const DEFAULT_TIERS: MetaAgencyIndianTier[] = [
   { dailyLimit: "5K", weekly: { price: "", amount: "" }, monthly: { price: "", amount: "" } },
@@ -25,12 +25,9 @@ export default function MetaAgencyIndianPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(apiPath("/api/config"))
-      .then((r) => r.json())
-      .then((data) => {
-        setConfig(data);
-        setLoading(false);
-      })
+    fetchWithTimeout(apiPath("/api/config"), {}, 25000)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error())))
+      .then((data) => { setConfig(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
@@ -44,8 +41,9 @@ export default function MetaAgencyIndianPage() {
 
   if (!config) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE]">
-        <div className="text-red-600">Failed to load.</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE] px-4 gap-4">
+        <p className="text-red-600 text-center font-medium">Failed to load. Check your connection.</p>
+        <Link href="/" className="btn-outline text-sm">Back to services</Link>
       </div>
     );
   }
@@ -61,14 +59,11 @@ export default function MetaAgencyIndianPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] via-[#EDE9FE] to-[#DBEAFE]">
       <div className="max-w-4xl mx-auto px-4 pt-10 pb-20">
-        <Link
-          href="/"
-          className="inline-flex items-center text-purple-700 hover:text-purple-900 font-medium mb-8"
-        >
+        <Link href="/" className="link-back mb-8">
           ← Back to services
         </Link>
 
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-10 uppercase tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold text-gradient-brand text-center mb-10 uppercase tracking-tight">
           Indian Meta Agency Ads Account
         </h1>
 
@@ -84,20 +79,20 @@ export default function MetaAgencyIndianPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="border border-gray-200 rounded-xl p-4">
                   <p className="text-sm text-gray-600 mb-1">Weekly</p>
-                  <p className="font-semibold text-purple-700 mb-3">{tier.weekly.price || "—"}</p>
+                  <p className="font-semibold text-gradient-brand mb-3">{tier.weekly.price || "—"}</p>
                   <Link
                     href={buildPayHref(`${tier.dailyLimit} Weekly`, tier.weekly.amount)}
-                    className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
+                    className="btn-outline w-full text-center"
                   >
                     Pay Weekly
                   </Link>
                 </div>
                 <div className="border border-gray-200 rounded-xl p-4">
                   <p className="text-sm text-gray-600 mb-1">Monthly</p>
-                  <p className="font-semibold text-purple-700 mb-3">{tier.monthly.price || "—"}</p>
+                  <p className="font-semibold text-gradient-brand mb-3">{tier.monthly.price || "—"}</p>
                   <Link
                     href={buildPayHref(`${tier.dailyLimit} Monthly`, tier.monthly.amount)}
-                    className="block text-center py-2.5 px-4 rounded-xl font-medium border-2 border-purple-500 text-purple-700 hover:bg-purple-50 transition"
+                    className="btn-outline w-full text-center"
                   >
                     Pay Monthly
                   </Link>
@@ -113,7 +108,7 @@ export default function MetaAgencyIndianPage() {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#25D366] text-white font-semibold shadow-lg hover:bg-[#20BD5A] transition"
+            className="btn-whatsapp"
           >
             Contact on WhatsApp
           </a>

@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Config } from "@/lib/types";
-import { apiPath } from "@/lib/api";
+import { apiPath, fetchWithTimeout } from "@/lib/api";
 
 function PaymentContent() {
   const searchParams = useSearchParams();
@@ -15,18 +15,22 @@ function PaymentContent() {
   const [copied, setCopied] = useState(false);
 
   const copyUpiId = () => {
-    if (!config?.payment.upiId) return;
+    if (!config?.payment?.upiId) return;
     navigator.clipboard.writeText(config.payment.upiId).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => { /* clipboard failed, ignore */ });
   };
 
   useEffect(() => {
-    fetch(apiPath("/api/config"))
-      .then((r) => r.json())
+    const url = apiPath("/api/config");
+    fetchWithTimeout(url, {}, 25000)
+      .then((r) => {
+        if (!r.ok) throw new Error("Config failed");
+        return r.json();
+      })
       .then((data) => {
-        setConfig(data);
+        if (data?.payment) setConfig(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -35,15 +39,16 @@ function PaymentContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE]">
-        <div className="text-purple-700 font-medium">Loading...</div>
+        <div className="font-semibold text-gradient-brand">Loading...</div>
       </div>
     );
   }
 
   if (!config || !config.payment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE] px-4">
-        <p className="text-red-600 text-center">Failed to load payment details.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F3FF] via-[#FCE7F3] to-[#DBEAFE] px-4 gap-4">
+        <p className="text-red-600 text-center font-medium">Failed to load payment details. Check your connection.</p>
+        <Link href="/" className="btn-outline text-sm py-2 px-4">Back to services</Link>
       </div>
     );
   }
@@ -75,18 +80,15 @@ function PaymentContent() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] via-[#EDE9FE] to-[#DBEAFE] py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#F5F3FF] via-[#EDE9FE] to-[#DBEAFE] py-8 sm:py-12 px-4 sm:px-6 pb-12">
         <div className="max-w-md mx-auto text-center">
-          <Link
-            href="/"
-            className="text-purple-700 font-semibold hover:underline mb-6 inline-block"
-          >
+          <Link href="/" className="link-back mb-6">
             ← Back to services
           </Link>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 p-5 sm:p-8">
             <div className="inline-block text-left mx-auto mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gradient-brand">
                 Pay for {serviceName}
               </h1>
               <svg
@@ -128,10 +130,7 @@ function PaymentContent() {
           )}
 
           {upiPayUrl && (
-            <a
-              href={upiPayUrl}
-              className="mb-6 flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-purple-600 text-white font-bold text-lg shadow-lg hover:bg-purple-700 transition"
-            >
+            <a href={upiPayUrl} className="btn-primary w-full mb-6 text-lg">
               PAY NOW
             </a>
           )}
@@ -150,7 +149,7 @@ function PaymentContent() {
               <button
                 type="button"
                 onClick={copyUpiId}
-                className="mt-3 text-sm font-bold text-purple-600 hover:text-purple-700 hover:underline"
+                className="btn-outline mt-3 min-h-[40px] py-2 px-4 text-sm"
               >
                 {copied ? "Copied!" : "Copy UPI ID"}
               </button>
@@ -173,7 +172,7 @@ function PaymentContent() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[#25D366] text-white font-bold shadow-lg hover:bg-[#20BD5A] transition"
+                className="btn-whatsapp w-full"
               >
                 WhatsApp – Click here
               </a>
