@@ -1,4 +1,4 @@
-# Adswadi Service Page
+# Adswadi Service Page  jj
 
 A service page for your agency with admin-controlled content: title, service posters, pricing, and manual payment gateway (QR + UPI). Meta Ads has **Weekly** and **Monthly** sub-categories.
 
