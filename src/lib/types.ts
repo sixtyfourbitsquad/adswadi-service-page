@@ -49,6 +49,17 @@ export type MetaAgencyInternational = {
   categories: MetaAgencyInternationalCategory[];
 };
 
+/** Hero banner & Pay Now CTA (between subtitle and Our Services) – admin controllable */
+export type HeroBanner = {
+  enabled: boolean;
+  imageUrl: string;
+  buttonText: string;
+  /** Display name shown on payment page (e.g. "Banner Special Offer") */
+  serviceName: string;
+  /** Amount for UPI QR (e.g. "9999") – same as other Pay buttons */
+  amount: string;
+};
+
 /** Indian or International option for Google Agency (price + amount for QR) */
 export type GoogleAgencyOption = {
   price: string;
@@ -70,6 +81,8 @@ export type GoogleAgencyMonthly = {
 export type Config = {
   title: string;
   subtitle: string;
+  /** Optional hero banner + Pay Now button (admin toggle) */
+  heroBanner?: HeroBanner;
   services: ServiceItem[];
   payment: PaymentGateway;
   /** Indian Meta Agency page: 3 tiers with daily limit + weekly/monthly */

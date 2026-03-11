@@ -8,8 +8,16 @@
       "slug": "meta-ads",
       "image": "/Images/metaads.png",
       "subCategories": [
-        { "name": "Weekly", "price": "", "amount": "" },
-        { "name": "Monthly", "price": "", "amount": "" }
+        {
+          "name": "Weekly",
+          "price": "",
+          "amount": ""
+        },
+        {
+          "name": "Monthly",
+          "price": "",
+          "amount": ""
+        }
       ]
     },
     {
@@ -18,8 +26,16 @@
       "slug": "google-ads",
       "image": "/Images/googleads.png",
       "subCategories": [
-        { "name": "Weekly", "price": "", "amount": "" },
-        { "name": "Monthly", "price": "", "amount": "" }
+        {
+          "name": "Weekly",
+          "price": "",
+          "amount": ""
+        },
+        {
+          "name": "Monthly",
+          "price": "",
+          "amount": ""
+        }
       ]
     },
     {
@@ -28,8 +44,16 @@
       "slug": "snapchat-ads",
       "image": "/Images/snapchatads.png",
       "subCategories": [
-        { "name": "Weekly", "price": "", "amount": "" },
-        { "name": "Monthly", "price": "", "amount": "" }
+        {
+          "name": "Weekly",
+          "price": "",
+          "amount": ""
+        },
+        {
+          "name": "Monthly",
+          "price": "",
+          "amount": ""
+        }
       ]
     },
     {
@@ -113,27 +137,94 @@
   },
   "metaAgencyIndian": {
     "tiers": [
-      { "dailyLimit": "5K", "weekly": { "price": "₹X,XXX", "amount": "" }, "monthly": { "price": "₹X,XXX", "amount": "" } },
-      { "dailyLimit": "20K", "weekly": { "price": "₹X,XXX", "amount": "" }, "monthly": { "price": "₹X,XXX", "amount": "" } },
-      { "dailyLimit": "30K", "weekly": { "price": "₹X,XXX", "amount": "" }, "monthly": { "price": "₹X,XXX", "amount": "" } }
+      {
+        "dailyLimit": "5K",
+        "weekly": {
+          "price": "₹X,XXX",
+          "amount": ""
+        },
+        "monthly": {
+          "price": "₹X,XXX",
+          "amount": ""
+        }
+      },
+      {
+        "dailyLimit": "20K",
+        "weekly": {
+          "price": "₹X,XXX",
+          "amount": ""
+        },
+        "monthly": {
+          "price": "₹X,XXX",
+          "amount": ""
+        }
+      },
+      {
+        "dailyLimit": "30K",
+        "weekly": {
+          "price": "₹X,XXX",
+          "amount": ""
+        },
+        "monthly": {
+          "price": "₹X,XXX",
+          "amount": ""
+        }
+      }
     ],
     "needMoreLabel": "Need more daily limit accounts?"
   },
   "metaAgencyInternational": {
     "categories": [
-      { "name": "White Hat", "price": "", "amount": "" },
-      { "name": "Grey Hat", "price": "", "amount": "" },
-      { "name": "Black Hat", "price": "", "amount": "" }
+      {
+        "name": "White Hat",
+        "price": "",
+        "amount": ""
+      },
+      {
+        "name": "Grey Hat",
+        "price": "",
+        "amount": ""
+      },
+      {
+        "name": "Black Hat",
+        "price": "",
+        "amount": ""
+      }
     ]
   },
   "googleAgencyWeekly": {
-    "indian": { "price": "", "amount": "" },
-    "international": { "price": "", "amount": "" }
+    "indian": {
+      "price": "",
+      "amount": ""
+    },
+    "international": {
+      "price": "",
+      "amount": ""
+    }
   },
   "googleAgencyMonthly": {
-    "indian": { "price": "", "amount": "" },
-    "international": { "price": "", "amount": "" }
+    "indian": {
+      "price": "",
+      "amount": ""
+    },
+    "international": {
+      "price": "",
+      "amount": ""
+    }
   },
-  "googleAgencyIndian": { "price": "", "amount": "" },
-  "googleAgencyInternational": { "price": "", "amount": "" }
+  "googleAgencyIndian": {
+    "price": "",
+    "amount": ""
+  },
+  "googleAgencyInternational": {
+    "price": "",
+    "amount": ""
+  },
+  "heroBanner": {
+    "enabled": true,
+    "imageUrl": "/Images/banner.png",
+    "buttonText": "Pay Now",
+    "serviceName": "META CLASS",
+    "amount": "1000"
+  }
 }

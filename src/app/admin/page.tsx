@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type {
   Config,
+  HeroBanner,
   ServiceItem,
   SubCategory,
   MetaAgencyIndian,
@@ -70,6 +71,16 @@ export default function AdminPage() {
   const [googleAgencyIndianDraft, setGoogleAgencyIndianDraft] = useState<GoogleAgencyOption>(defaultGoogleAgencyOption);
   const [googleAgencyInternationalDraft, setGoogleAgencyInternationalDraft] = useState<GoogleAgencyOption>(defaultGoogleAgencyOption);
 
+  const defaultHeroBanner = (): HeroBanner => ({
+    enabled: false,
+    imageUrl: "",
+    buttonText: "Pay Now",
+    serviceName: "",
+    amount: "",
+  });
+  const [heroBannerDraft, setHeroBannerDraft] = useState<HeroBanner>(defaultHeroBanner);
+  const [heroBannerFeedback, setHeroBannerFeedback] = useState<string | null>(null);
+
   useEffect(() => {
     const t = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
     setToken(t);
@@ -117,6 +128,17 @@ export default function AdminPage() {
           data.googleAgencyInternational
             ? JSON.parse(JSON.stringify(data.googleAgencyInternational))
             : defaultGoogleAgencyOption()
+        );
+        setHeroBannerDraft(
+          data.heroBanner?.enabled
+            ? JSON.parse(JSON.stringify(data.heroBanner))
+            : {
+                enabled: false,
+                imageUrl: data.heroBanner?.imageUrl ?? "",
+                buttonText: data.heroBanner?.buttonText ?? "Pay Now",
+                serviceName: data.heroBanner?.serviceName ?? "",
+                amount: data.heroBanner?.amount ?? "",
+              }
         );
       })
       .catch((err) => {
@@ -278,6 +300,69 @@ export default function AdminPage() {
     }
   };
 
+  const handleAddHeroBanner = async () => {
+    try {
+      const payload: HeroBanner = {
+        enabled: true,
+        imageUrl: "",
+        buttonText: "Pay Now",
+        serviceName: "",
+        amount: "",
+      };
+      const data = await saveToServer({ heroBanner: payload });
+      if (data) {
+        setConfig(data);
+        setHeroBannerDraft({ ...payload });
+        showMessage("success", "Banner added. Add an image and save to show it.");
+      }
+    } catch {
+      showMessage("error", "Failed to add banner.");
+    }
+  };
+
+  const handleSaveHeroBanner = async () => {
+    setHeroBannerFeedback(null);
+    try {
+      const payload: HeroBanner = {
+        enabled: true,
+        imageUrl: heroBannerDraft.imageUrl,
+        buttonText: heroBannerDraft.buttonText || "Pay Now",
+        serviceName: heroBannerDraft.serviceName || "",
+        amount: heroBannerDraft.amount || "",
+      };
+      const data = await saveToServer({ heroBanner: payload });
+      if (data) {
+        setConfig(data);
+        setHeroBannerDraft(JSON.parse(JSON.stringify(data.heroBanner || payload)));
+        setHeroBannerFeedback("Banner saved successfully.");
+        setTimeout(() => setHeroBannerFeedback(null), 4000);
+      }
+    } catch {
+      setHeroBannerFeedback("Failed to save banner.");
+      setTimeout(() => setHeroBannerFeedback(null), 4000);
+    }
+  };
+
+  const handleDeleteHeroBanner = async () => {
+    try {
+      const payload: HeroBanner = {
+        enabled: false,
+        imageUrl: "",
+        buttonText: "Pay Now",
+        serviceName: "",
+        amount: "",
+      };
+      const data = await saveToServer({ heroBanner: payload });
+      if (data) {
+        setConfig(data);
+        setHeroBannerDraft(defaultHeroBanner());
+        showMessage("success", "Banner removed.");
+      }
+    } catch {
+      showMessage("error", "Failed to remove banner.");
+    }
+  };
+
   const handleSaveGoogleAgencyDirect = async () => {
     try {
       const data = await saveToServer({
@@ -348,9 +433,6 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
         <div className="text-gray-600">Loading...</div>
-        <p className="mt-2 text-sm text-gray-500">
-          If this takes more than 30 seconds, the backend may be waking up (Render free tier). Wait and retry.
-        </p>
       </div>
     );
   }
@@ -447,6 +529,92 @@ export default function AdminPage() {
             </div>
             <SaveButton onClick={handleSavePayment} label="Save payment settings" />
           </div>
+        </section>
+
+        {/* Hero Banner & Pay Now */}
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Hero Banner & Pay Now Button</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Optional banner and &quot;Pay Now&quot; button between the subtitle and Our Services. Toggle on/off or remove completely.
+          </p>
+          {config.heroBanner?.enabled ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Banner image URL</label>
+                <input
+                  type="text"
+                  placeholder="https://... or /uploaded/filename.png"
+                  value={heroBannerDraft.imageUrl}
+                  onChange={(e) => setHeroBannerDraft((d) => ({ ...d, imageUrl: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+                <UploadPoster
+                  serviceName="hero-banner"
+                  onUploaded={(url) => setHeroBannerDraft((d) => ({ ...d, imageUrl: url }))}
+                  token={token}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Button text</label>
+                <input
+                  type="text"
+                  placeholder="Pay Now"
+                  value={heroBannerDraft.buttonText}
+                  onChange={(e) => setHeroBannerDraft((d) => ({ ...d, buttonText: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Service/Product name (shows on payment page)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Banner Special Offer"
+                  value={heroBannerDraft.serviceName}
+                  onChange={(e) => setHeroBannerDraft((d) => ({ ...d, serviceName: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Amount for payment QR (e.g. 9999)</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Amount in rupees"
+                  value={heroBannerDraft.amount}
+                  onChange={(e) => setHeroBannerDraft((d) => ({ ...d, amount: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <SaveButton onClick={handleSaveHeroBanner} label="Save banner" />
+                <button
+                  type="button"
+                  onClick={handleDeleteHeroBanner}
+                  className="px-4 py-2 rounded-lg border border-red-300 bg-red-50 text-red-700 font-medium hover:bg-red-100 transition"
+                >
+                  Remove banner
+                </button>
+                {heroBannerFeedback && (
+                  <span
+                    className={`text-sm font-medium ${heroBannerFeedback.startsWith("Banner saved") ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {heroBannerFeedback}
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <button
+                type="button"
+                onClick={handleAddHeroBanner}
+                className="px-4 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition"
+              >
+                Add Banner & Pay Now Button
+              </button>
+              <p className="mt-2 text-sm text-gray-500">Banner will appear between the subtitle and Our Services.</p>
+            </div>
+          )}
         </section>
 
         {/* Change password */}

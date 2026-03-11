@@ -89,6 +89,41 @@ export default function ServicePage() {
           </div>
         </section>
 
+        {/* Hero Banner & Pay Now (admin controlled) */}
+        {config.heroBanner?.enabled && config.heroBanner?.imageUrl && (
+          <section className="relative px-4 sm:px-6 pb-8 sm:pb-10">
+            <div className="max-w-4xl mx-auto">
+              <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-md border border-gray-100 bg-white">
+                <img
+                  src={getImageUrl(config.heroBanner.imageUrl)}
+                  alt={config.heroBanner.serviceName || "Promotional banner"}
+                  className="w-full object-cover aspect-[21/9] sm:aspect-[3/1]"
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
+              <div className="mt-4 text-center">
+                <Link
+                  href={(() => {
+                    const params = new URLSearchParams();
+                    params.set("service", "hero-banner");
+                    params.set("name", config.heroBanner.serviceName || "Payment");
+                    if (config.heroBanner.amount?.trim())
+                      params.set("amount", config.heroBanner.amount.trim());
+                    return `/payment?${params.toString()}`;
+                  })()}
+                  className="btn-primary inline-flex w-full sm:w-auto justify-center min-w-[200px]"
+                >
+                  {config.heroBanner.buttonText || "Pay Now"}
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Services grid */}
         <section className="relative px-4 sm:px-6 pb-16 sm:pb-20">
           <div className="max-w-6xl mx-auto">

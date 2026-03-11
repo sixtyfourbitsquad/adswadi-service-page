@@ -113,6 +113,15 @@ function isValidConfigPatch(body) {
   const opt = (o) => o === undefined || (typeof o === "object" && o !== null && (o.price === undefined || typeof o.price === "string") && (o.amount === undefined || typeof o.amount === "string"));
   if (body.googleAgencyIndian !== undefined && !opt(body.googleAgencyIndian)) return false;
   if (body.googleAgencyInternational !== undefined && !opt(body.googleAgencyInternational)) return false;
+  if (body.heroBanner !== undefined) {
+    const h = body.heroBanner;
+    if (typeof h !== "object" || h === null) return false;
+    if (h.enabled !== undefined && typeof h.enabled !== "boolean") return false;
+    if (h.imageUrl !== undefined && typeof h.imageUrl !== "string") return false;
+    if (h.buttonText !== undefined && typeof h.buttonText !== "string") return false;
+    if (h.serviceName !== undefined && typeof h.serviceName !== "string") return false;
+    if (h.amount !== undefined && typeof h.amount !== "string") return false;
+  }
   return true;
 }
 
@@ -133,6 +142,7 @@ app.patch("/api/admin/config", (req, res) => {
     if (body.googleAgencyMonthly !== undefined) config.googleAgencyMonthly = body.googleAgencyMonthly;
     if (body.googleAgencyIndian !== undefined) config.googleAgencyIndian = body.googleAgencyIndian;
     if (body.googleAgencyInternational !== undefined) config.googleAgencyInternational = body.googleAgencyInternational;
+    if (body.heroBanner !== undefined) config.heroBanner = body.heroBanner;
     saveConfig(config);
     return res.json(config);
   } catch (e) {
